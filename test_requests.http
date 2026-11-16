@@ -1,0 +1,79 @@
+#
+POST http://localhost:3001/dateStringSingle HTTP/1.1
+content-type: application/json
+
+{
+    "dateString": "tomorrow"
+}
+###
+
+#
+POST http://localhost:3001/dateStringSingle HTTP/1.1
+content-type: application/json
+
+{
+    "dateString": "today"
+}
+###
+
+#
+POST http://localhost:3001/dateStringSingle HTTP/1.1
+content-type: application/json
+
+{
+    "dateString": "yesterday"
+}
+###
+
+#
+POST http://localhost:3001/dateStringSingle HTTP/1.1
+content-type: application/json
+
+{
+    "dateString": "invalid-string"
+}
+###
+
+#
+POST http://localhost:3001/dateStringMulti HTTP/1.1
+content-type: application/json
+
+{
+    "direction": "previous",
+    "unit": "week",
+    "number": 2
+}
+###
+
+#
+POST http://localhost:3001/dateStringMulti HTTP/1.1
+content-type: application/json
+
+{
+    "direction": "next",
+    "unit": "day",
+    "number": 6
+}
+###
+
+#
+POST http://localhost:3001/dateStringMulti HTTP/1.1
+content-type: application/json
+
+{
+    "direction": "previous",
+    "unit": "year",
+    "number": 5
+}
+###
+
+#
+POST http://localhost:3001/dateStringMulti HTTP/1.1
+content-type: application/json
+
+{
+    "direction": "next",
+    "unit": "month",
+    "number": 1
+}
+###
