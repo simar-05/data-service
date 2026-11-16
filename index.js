@@ -5,8 +5,51 @@ const PORT = 3001;
 
 app.use(express.json())
 
-//User story 1
-//TODO: !!!
+
+ //User story 1
+ //Calculate days remaining until a due date
+ app.post('/daysRemaining', (req, res) => {
+    const { initial_date, target_date } = req.body;
+
+    // Check that both dates use YYYY-MM-DD format
+    function parseDate(value) {
+        if (typeof value !== "string" ||
+            !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            return null;
+        }
+
+        const [year, month, day] = value.split("-").map(Number);
+        const date = new Date(Date.UTC(year, month - 1, day));
+
+        // Reject invalid dates such as February 30
+        if (date.getUTCFullYear() !== year ||
+            date.getUTCMonth() !== month - 1 ||
+            date.getUTCDate() !== day) {
+            return null;
+        }
+
+        return date;
+    }
+
+    const startDate = parseDate(initial_date);
+    const dueDate = parseDate(target_date);
+
+    if (!startDate || !dueDate) {
+        return res.status(400).json({
+            error: "Both dates must be valid YYYY-MM-DD dates"
+        });
+    }
+
+    // Calculate the difference in whole calendar days
+    const millisecondsPerDay = 24 * 60 * 60 * 1000;
+    const days_remaining = Math.round(
+        (dueDate - startDate) / millisecondsPerDay
+    );
+
+    return res.status(200).json({
+        days_remaining
+    });
+});
 
 //User story 2
 app.post('/dateStringSingle', (req, res) => {
@@ -15,7 +58,7 @@ app.post('/dateStringSingle', (req, res) => {
 
     //Check if dateString is string
     if (typeof dateString != "string") {
-        res.status(400).json({
+        return res.status(400).json({
             error: "dateString must be a string"
         })
     }
@@ -25,25 +68,25 @@ app.post('/dateStringSingle', (req, res) => {
     if (dateString === "today"){
         date_returned = date_returned.toISOString().substring(0,10)
 
-        res.status(200).json({
+        return res.status(200).json({
             date_returned
         })
     } else if (dateString === "tomorrow"){
         date_returned.setDate(date_returned.getDate() + 1)
 
         date_returned = date_returned.toISOString().substring(0,10)
-        res.status(200).json({
+        return res.status(200).json({
             date_returned
         })
     } else if (dateString === "yesterday"){
         date_returned.setDate(date_returned.getDate() - 1)
 
         date_returned = date_returned.toISOString().substring(0,10)
-        res.status(200).json({
+        return res.status(200).json({
             date_returned
         })        
     } else {
-        res.status(400).json({
+        return res.status(400).json({
             error: "dateString invalid. Must be 'tomorrow', 'today', or 'yesterday'"
         })
     }
@@ -63,46 +106,62 @@ app.post('/dateStringMulti', (req, res) => {
     const {direction, unit, number} = req.body;
     let unit_list = ["day", "week", "month", "year"]
     let direction_list = ["next", "previous"]
-    let multiplier_list = [1, 7, 30, 365]
     let date_returned = new Date()
 
     //Check if number is int
     if (!Number.isInteger(number)) {
-        res.status(400).json({
+        return res.status(400).json({
             error: "number must be an integer"
         })
     }
 
     //Check if unit is valid
     if (!unit_list.includes(unit)) {
-        res.status(400).json({
+        return res.status(400).json({
             error: "unit must be day, week, month, or year"
         })
     }
 
     //Check if direction is valid
     if (!direction_list.includes(direction)) {
-        res.status(400).json({
+        return res.status(400).json({
             error: "direction must be next or previous"
         })
     }
 
-    //Set multiplier (unit list mapped to multiplier list)
-    for (let i = 0; i < unit_list.length; i++){
-        if (unit_list[i] === unit) {
-            multiplier = multiplier_list[i]
+    // Calculate using actual calendar days, months, and years
+    const amount = direction === "previous" ? -number : number;
+
+    if (unit === "day") {
+        date_returned.setDate(date_returned.getDate() + amount);
+    } else if (unit === "week") {
+        date_returned.setDate(date_returned.getDate() + amount * 7);
+    } else if (unit === "month") {
+        const originalDay = date_returned.getDate();
+
+        date_returned.setDate(1);
+        date_returned.setMonth(date_returned.getMonth() + amount);
+
+        const lastDay = new Date(
+            date_returned.getFullYear(),
+            date_returned.getMonth() + 1,
+            0
+        ).getDate();
+
+        date_returned.setDate(Math.min(originalDay, lastDay));
+    } else if (unit === "year") {
+        const originalMonth = date_returned.getMonth();
+
+        date_returned.setFullYear(date_returned.getFullYear() + amount);
+
+        // Handle February 29 in non-leap years
+        if (date_returned.getMonth() !== originalMonth) {
+            date_returned.setDate(0);
         }
     }
 
-    //If previous, make multiplier negative
-    if (direction === "previous") {
-        multiplier *= -1
-    }
-
-    date_returned.setDate(date_returned.getDate() + multiplier * number)
-
     date_returned = date_returned.toISOString().substring(0,10)
-    res.status(200).json({
+    return res.status(200).json({
         date_returned
     })
 })
