@@ -77,8 +77,6 @@ The test program sends HTTP requests to all three endpoints and displays the res
 
 ## UML Sequence Diagram
 
-## UML Sequence Diagram
-
 ```mermaid
 sequenceDiagram
     autonumber
