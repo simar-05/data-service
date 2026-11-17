@@ -77,4 +77,35 @@ The test program sends HTTP requests to all three endpoints and displays the res
 
 ## UML Sequence Diagram
 
-<To be added>
+## UML Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client
+    participant Server as Date Service (Express API)
+
+    Note over Client, Server: 1. Calculate Days Remaining
+    Client->>Server: POST /daysRemaining {initial_date, target_date}
+    alt Invalid Date Format or Values
+        Server-->>Client: HTTP 400 {error: "Both dates must be valid..."}
+    else Valid Dates
+        Server-->>Client: HTTP 200 {days_remaining}
+    end
+
+    Note over Client, Server: 2. Single Date String Conversion
+    Client->>Server: POST /dateStringSingle {dateString}
+    alt Invalid string (not today/tomorrow/yesterday)
+        Server-->>Client: HTTP 400 {error: "dateString invalid..."}
+    else Valid string
+        Server-->>Client: HTTP 200 {date_returned}
+    end
+
+    Note over Client, Server: 3. Multi Date Calculation
+    Client->>Server: POST /dateStringMulti {direction, unit, number}
+    alt Invalid parameters (number, unit, or direction)
+        Server-->>Client: HTTP 400 {error: "..."}
+    else Valid parameters
+        Server-->>Client: HTTP 200 {date_returned}
+    end
+```
